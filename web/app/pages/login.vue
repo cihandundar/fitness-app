@@ -120,6 +120,7 @@ definePageMeta({
 
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 const toast = useToast()
 
 const form = ref({
@@ -138,7 +139,10 @@ const handleLogin = async () => {
   try {
     await authStore.login(form.value.email, form.value.password)
     toast.success('Giriş başarılı')
-    await router.push('/dashboard')
+
+    // Redirect parametresini kontrol et
+    const redirectPath = route.query.redirect as string || '/dashboard'
+    await router.push(redirectPath)
   } catch (e: Error | unknown) {
     const errorResponse = e as any
     const message = errorResponse.response?.data?.message || 'Giriş başarısız'

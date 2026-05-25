@@ -33,8 +33,8 @@
         </div>
 
         <!-- Programs Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <div v-for="program in filteredPrograms" :key="program.id" 
+        <div v-if="!loading && filteredPrograms.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div v-for="program in filteredPrograms" :key="program.id"
             @click="navigateTo(`/programs/${program.id}`)"
             class="group relative bg-slate-900/50 border border-slate-800/50 rounded-3xl overflow-hidden hover:border-violet-500/50 transition-all cursor-pointer">
             <div class="aspect-video bg-slate-800 relative overflow-hidden">
@@ -62,14 +62,39 @@
             </div>
           </div>
         </div>
+
+        <!-- Loading State -->
+        <div v-if="loading" class="flex justify-center py-20">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-violet-500"></div>
+        </div>
+
+        <!-- Empty State - No Programs -->
+        <div v-else-if="!loading && filteredPrograms.length === 0" class="text-center py-20">
+          <div class="inline-flex w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center mb-6">
+            <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-white mb-3">
+            {{ isUser ? 'Henüz atanmış programınız bulunmuyor' : 'Program bulunmuyor' }}
+          </h3>
+          <p class="text-slate-400 mb-6 max-w-md mx-auto">
+            {{ isUser ? 'Eğitmeniniz size bir program atadığında burada görünecektir.' : 'Henüz program eklenmemiş.' }}
+          </p>
+          <NuxtLink v-if="!isUser" to="/" class="inline-flex items-center px-6 py-3 rounded-xl bg-violet-500 text-white font-medium hover:bg-violet-600 transition-all">
+            Anasayfaya Dön
+          </NuxtLink>
+        </div>
       </div>
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'active-member'],
   layout: false
 })
 
@@ -77,13 +102,18 @@ const api = useApi()
 const programs = ref([])
 const activeCategory = ref('Tümü')
 const categories = ['Tümü', 'Kilo Verme', 'Kas Kütlesi', 'Dayanıklılık', 'Esneklik']
+const loading = ref(true)
+const authStore = useAuthStore()
 
 const fetchPrograms = async () => {
+  loading.value = true
   try {
     const res = await api.get('/programs')
-    programs.value = res.data.data
+    programs.value = res.data.data || []
   } catch (e) {
     console.error('Programlar yüklenemedi')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -91,6 +121,9 @@ const filteredPrograms = computed(() => {
   if (activeCategory.value === 'Tümü') return programs.value
   return programs.value.filter(p => p.category === activeCategory.value)
 })
+
+const isUser = computed(() => authStore.user?.role === 'user')
+const hasPrograms = computed(() => programs.value.length > 0)
 
 onMounted(fetchPrograms)
 </script>

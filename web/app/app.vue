@@ -33,8 +33,11 @@ const hasCustomLayout = computed(() => {
 
 // Initialize auth store on app mount
 const authStore = useAuthStore()
-onMounted(() => {
-  authStore.init()
+const isInitialized = ref(false)
+
+onMounted(async () => {
+  await authStore.init()
+  isInitialized.value = true
 })
 </script>
 

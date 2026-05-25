@@ -22,14 +22,21 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        $user->update([
+        $updateData = [
             'name' => $request->name ?? $user->name,
             'email' => $request->email ?? $user->email,
             'height' => $request->height ?? $user->height,
             'weight' => $request->weight ?? $user->weight,
-            'birth_date' => $request->birth_date ?? $user->birth_date,
+            'birth_date' => $request->birth_date ?? $request->date_of_birth ?? $user->birth_date,
+            'gender' => $request->gender ?? $user->gender,
+            'phone' => $request->phone ?? $user->phone,
+            'fitness_goal' => $request->fitness_goal ?? $user->fitness_goal,
             'avatar' => $request->avatar ?? $user->avatar,
-        ]);
+            'preferred_branches' => $request->preferred_branches ?? $user->preferred_branches,
+        ];
+
+        // Sadece gönderilen alanları güncelle
+        $user->update(array_filter($updateData, fn($value) => $value !== null));
 
         return response()->json([
             'data' => new UserResource($user->fresh()),

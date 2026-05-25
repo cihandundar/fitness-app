@@ -55,6 +55,12 @@ return Application::configure(basePath: dirname(__DIR__))
                     ], $statusCode);
                 }
 
+                // Database errors
+                elseif ($e instanceof \Illuminate\Database\QueryException) {
+                    $statusCode = 500;
+                    $message = 'Veritabanı hatası oluştu';
+                }
+
                 // Rate limiting
                 elseif ($e instanceof \Illuminate\Http\Exceptions\ThrottleRequestsException) {
                     $statusCode = 429;

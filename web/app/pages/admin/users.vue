@@ -54,7 +54,7 @@
                         <svg v-else class="w-6 h-6 text-slate-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
                       </div>
                       <div>
-                        <div class="text-white font-medium">{{ user.name }}</div>
+                        <NuxtLink :to="`/profile/${user.id}`" class="text-white font-medium hover:text-violet-400 transition-colors">{{ user.name }}</NuxtLink>
                         <div class="text-xs text-slate-500">{{ user.email }}</div>
                       </div>
                     </div>
@@ -65,9 +65,26 @@
                     </span>
                   </td>
                   <td class="px-6 py-4">
-                    <div class="flex items-center">
-                      <span :class="user.is_active ? 'bg-green-400' : 'bg-red-400'" class="w-2 h-2 rounded-full mr-2"></span>
-                      <span class="text-sm text-slate-300">{{ user.is_active ? 'Aktif' : 'Pasif' }}</span>
+                    <button
+                      v-if="user.role !== 'super_admin'"
+                      @click="toggleUserStatus(user)"
+                      class="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all"
+                      :class="user.is_active
+                        ? 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20'
+                        : 'bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20'"
+                    >
+                      <span :class="user.is_active ? 'bg-green-400' : 'bg-red-400'" class="w-2 h-2 rounded-full"></span>
+                      <span class="text-xs font-medium">{{ user.is_active ? 'Aktif' : 'Pasif' }}</span>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                      </svg>
+                    </button>
+                    <div v-else class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                      <span class="text-xs font-medium">Her zaman Aktif</span>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                      </svg>
                     </div>
                   </td>
                   <td class="px-6 py-4 text-slate-400 text-sm">
@@ -157,6 +174,39 @@ const updateRole = async (user: User, event: Event) => {
   } catch (e: Error | unknown) {
     const errorMessage = e instanceof Error ? e.message : 'Rol güncellenemedi'
     alert(errorMessage)
+  }
+}
+
+const toggleUserStatus = async (user: User) => {
+  if (user.role === 'super_admin') {
+    alert('Super Admin durumunu değiştiremezsiniz.')
+    return
+  }
+
+  const newStatus = !user.is_active
+  const confirmMessage = newStatus
+    ? 'Kullanıcıyı aktif yapmak istediğinize emin misiniz?'
+    : 'Kullanıcıyı pasif yapmak istediğinize emin misiniz? Pasif kullanıcılar sisteme giriş yapamaz.'
+
+  if (!confirm(confirmMessage)) return
+
+  try {
+    console.log('Before update - user.is_active:', user.is_active, 'newStatus:', newStatus)
+    const response = await api.put(`/users/${user.id}`, { is_active: newStatus })
+    console.log('Update response:', response.data)
+    console.log('Response data is_active:', response.data.data?.is_active)
+
+    // API'den dönen güncel veriyi kullan
+    const updatedUser = response.data.data
+    const index = users.value.findIndex((u: User) => u.id === user.id)
+    if (index !== -1 && updatedUser) {
+      users.value[index] = { ...users.value[index], ...updatedUser }
+      console.log('After update - users[index].is_active:', users.value[index].is_active)
+    }
+  } catch (e: any) {
+    console.error('Update error:', e)
+    const errorMessage = e.response?.data?.message || e.message || 'Durum güncellenemedi'
+    alert('Hata: ' + errorMessage)
   }
 }
 

@@ -29,6 +29,7 @@ class User extends Authenticatable
         'fitness_goal',
         'activity_level',
         'last_login_at',
+        'preferred_branches',
     ];
 
     protected $hidden = [
@@ -47,6 +48,7 @@ class User extends Authenticatable
             'height' => 'decimal:2',
             'weight' => 'decimal:2',
             'last_login_at' => 'datetime',
+            'preferred_branches' => 'array',
         ];
     }
 

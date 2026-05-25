@@ -93,7 +93,7 @@ class BranchController extends Controller
     public function uploadImage(Request $request, Branch $branch)
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120', // 5MB limit + webp support
         ]);
 
         if ($request->hasFile('image')) {

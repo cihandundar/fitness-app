@@ -237,16 +237,22 @@ const saveBranch = async () => {
     if (selectedFile.value && branchId) {
       const formData = new FormData()
       formData.append('image', selectedFile.value)
-      await api.post(`/branches/${branchId}/upload-image`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      })
+      await api.post(`/branches/${branchId}/upload-image`, formData)
     }
 
     await fetchBranches()
     closeModal()
-  } catch (e: Error | unknown) {
-    const errorMessage = e instanceof Error ? e.message : 'Hata oluştu'
-    alert(errorMessage)
+  } catch (e: any) {
+    // Axios hatasından gerçek mesajı al
+    const errorMessage = e.response?.data?.message || e.message || 'Hata oluştu'
+    // Validation varsa detayları göster
+    if (e.response?.data?.errors) {
+      const errors = e.response.data.errors
+      const errorList = Object.values(errors).flat().join('\n')
+      alert(errorMessage + '\n' + errorList)
+    } else {
+      alert(errorMessage)
+    }
   }
 }
 

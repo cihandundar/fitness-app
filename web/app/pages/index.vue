@@ -119,12 +119,13 @@
                 {{ feature }}
               </li>
             </ul>
-            
-            <NuxtLink to="/register" 
-                     :class="plan.is_featured ? 'bg-gradient-to-r from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40' : 'bg-slate-800 hover:bg-slate-700'"
-                     class="w-full py-4 rounded-2xl text-white font-semibold transition-all text-center">
+
+            <button
+              @click="handlePurchase(plan.id)"
+              :class="plan.is_featured ? 'bg-gradient-to-r from-violet-500 to-purple-600 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40' : 'bg-slate-800 hover:bg-slate-700'"
+              class="w-full py-4 rounded-2xl text-white font-semibold transition-all">
               Satın Al
-            </NuxtLink>
+            </button>
           </div>
         </div>
       </div>
@@ -133,11 +134,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 definePageMeta({
 })
 
+const router = useRouter()
 const authStore = useAuthStore()
 const api = useApi()
 
@@ -154,6 +157,16 @@ const fetchData = async () => {
     plans.value = plansRes.data.data
   } catch (e) {
     console.error('Data fetch error:', e)
+  }
+}
+
+const handlePurchase = (planId: string) => {
+  if (authStore.isLoggedIn) {
+    // Giriş yapmışsa memberships sayfasına
+    router.push('/memberships')
+  } else {
+    // Giriş yapmamışsa register sayfasına
+    router.push('/register')
   }
 }
 

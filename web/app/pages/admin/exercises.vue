@@ -172,8 +172,8 @@ const fetchExercises = async () => {
   try {
     const res = await api.get('/exercises')
     exercises.value = res.data.data
-  } catch (e) {
-    console.error('Egzersizler yüklenemedi')
+  } catch (e: any) {
+    console.error('Egzersizler yüklenemedi', e?.response?.data ?? e)
   } finally {
     loading.value = false
   }

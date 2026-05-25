@@ -115,7 +115,7 @@ const fetchStats = async () => {
 
     stats.value[0].value = u.data.data?.length || u.data?.length || 0
     stats.value[1].value = pr.data.data?.length || pr.data?.length || 0
-    stats.value[2].value = ex.data.data?.length || ex.data?.length || 0
+    stats.value[2].value = ex.data.meta?.total ?? ex.data.data?.length ?? ex.data?.length ?? 0
     stats.value[3].value = py.data.data?.length || py.data?.length || 0
   } catch (e) {
     console.error('İstatistikler yüklenemedi', e)

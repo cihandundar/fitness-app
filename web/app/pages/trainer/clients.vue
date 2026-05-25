@@ -45,9 +45,20 @@
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <div v-for="client in clients" :key="client.id" class="p-6 rounded-2xl bg-slate-900/50 border border-slate-800/50 hover:border-purple-500/50 transition-all group relative overflow-hidden">
+        <div v-for="client in clients" :key="client.id" @click="goToProfile(client)" class="p-6 rounded-2xl bg-slate-900/50 border border-slate-800/50 hover:border-purple-500/50 transition-all group relative overflow-hidden cursor-pointer">
           <!-- Background Shape -->
           <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-purple-500/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+
+          <!-- Profile Badge -->
+          <div class="absolute top-4 right-4 z-10">
+            <span class="px-2 py-1 rounded-lg bg-purple-500/20 text-purple-400 text-xs font-semibold flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              Profil
+            </span>
+          </div>
 
           <div class="flex items-center mb-4 relative z-10">
             <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mr-4 overflow-hidden">
@@ -267,12 +278,22 @@ const fetchData = async () => {
 }
 
 const filteredUsers = computed(() => {
-  if (!searchQuery.value) return allUsers.value
-  const query = searchQuery.value.toLowerCase()
-  return allUsers.value.filter((u: User) =>
-    u.name.toLowerCase().includes(query) ||
-    u.email.toLowerCase().includes(query)
-  )
+  // Mevcut öğrencilerin ID'lerini al
+  const clientIds = new Set(clients.value.map(c => c.id))
+
+  // Henüz öğrencisi olmayan kullanıcıları filtrele
+  let availableUsers = allUsers.value.filter((u: User) => !clientIds.has(u.id))
+
+  // Arama sorgusu varsa filtrele
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    availableUsers = availableUsers.filter((u: User) =>
+      u.name.toLowerCase().includes(query) ||
+      u.email.toLowerCase().includes(query)
+    )
+  }
+
+  return availableUsers
 })
 
 const openAddClientModal = () => {
@@ -328,6 +349,10 @@ const getDaysColor = (days: number) => {
   if (days > 10) return 'bg-emerald-500/20 text-emerald-400'
   if (days > 5) return 'bg-orange-500/20 text-orange-400'
   return 'bg-red-500/20 text-red-400'
+}
+
+const goToProfile = (client: Client) => {
+  navigateTo(`/profile/${client.id}`)
 }
 
 onMounted(fetchData)

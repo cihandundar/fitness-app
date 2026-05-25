@@ -21,7 +21,9 @@ use Illuminate\Support\Facades\Route;
 // Guest routes - giriş gerektirmez, herkes erişebilir
 Route::middleware('guest')->group(function () {
     Route::prefix('auth')->group(function () {
+        Route::get('/check-email', [AuthController::class, 'checkEmail']);
         Route::post('/register', [AuthController::class, 'register']);
+        Route::post('/register-complete', [AuthController::class, 'registerComplete']);
         Route::post('/login', [AuthController::class, 'login']);
     });
 });
@@ -42,9 +44,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // Workouts API
     Route::apiResource('workouts', WorkoutController::class);
 
-    // Exercises API
+    // Exercises API (okuma — tüm giriş yapmış kullanıcılar)
     Route::get('exercises', [ExerciseController::class, 'index']);
     Route::get('exercises/{exercise}', [ExerciseController::class, 'show']);
+
+    // Kas grupları & ekipman listesi (form/select için)
+    Route::get('muscle-groups', [MuscleGroupController::class, 'index']);
+    Route::get('equipment-types', [EquipmentTypeController::class, 'index']);
 
     // User Preferences API
     Route::prefix('user')->group(function () {
@@ -74,16 +80,22 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('branches/update-order', [BranchController::class, 'updateOrder']);
         Route::post('branches/{branch}/upload-image', [BranchController::class, 'uploadImage']);
         Route::apiResource('membership-plans', MembershipPlanController::class)->except(['index']);
+        Route::get('user-memberships/pending', [UserMembershipController::class, 'pending']);
+        Route::post('user-memberships/{userMembership}/approve', [UserMembershipController::class, 'approve']);
+        Route::post('user-memberships/{userMembership}/reject', [UserMembershipController::class, 'reject']);
         Route::apiResource('user-memberships', UserMembershipController::class);
         Route::get('payments', [PaymentController::class, 'index']);
         Route::get('payments/{payment}', [PaymentController::class, 'show']);
         Route::put('payments/{payment}', [PaymentController::class, 'update']);
         Route::apiResource('users', UserController::class);
+        Route::get('users/{user}/membership', [UserController::class, 'getUserMembership']);
+        Route::get('users/{user}/programs', [UserController::class, 'getUserPrograms']);
+        Route::get('users/{user}/progress', [UserController::class, 'getUserProgress']);
         Route::get('all-workout-history', [App\Http\Controllers\Api\WorkoutLoggingController::class, 'getAllHistory']);
 
         // Equipment & Muscle Groups Management
-        Route::apiResource('equipment-types', EquipmentTypeController::class);
-        Route::apiResource('muscle-groups', MuscleGroupController::class);
+        Route::apiResource('equipment-types', EquipmentTypeController::class)->except(['index']);
+        Route::apiResource('muscle-groups', MuscleGroupController::class)->except(['index']);
         Route::post('equipment-types/reorder', [EquipmentTypeController::class, 'reorder']);
         Route::post('muscle-groups/reorder', [MuscleGroupController::class, 'reorder']);
     });
@@ -103,6 +115,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/password', [ProfileController::class, 'updatePassword']);
         Route::delete('/', [ProfileController::class, 'destroy']);
     });
+
+    // Payment API - Sadece görüntüleme (Online ödeme kaldırıldı)
+    Route::get('payments/my', [PaymentController::class, 'myPayments']);
+
+    // User Membership API - Kullanıcı işlemleri
+    Route::get('my-membership', [UserMembershipController::class, 'myMembership']);
+    Route::post('my-membership/cancel', [UserMembershipController::class, 'cancelMyMembership']);
 
     // Progress API
     Route::prefix('progress')->group(function () {

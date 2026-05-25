@@ -2,6 +2,8 @@ export default defineNuxtRouteMiddleware((to, from) => {
   const authStore = useAuthStore()
 
   if (!authStore.isLoggedIn) {
-    return navigateTo('/login')
+    // Mevcut sayfayı redirect param olarak sakla
+    const redirectPath = to.fullPath
+    return navigateTo(`/login?redirect=${encodeURIComponent(redirectPath)}`)
   }
 })

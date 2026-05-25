@@ -5,11 +5,16 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as any,
     token: null as string | null,
+    redirectPath: null as string | null,
   }),
 
   getters: {
-    isLoggedIn: (state) => !!state.token,
-    isAdmin: (state) => state.user?.role === 'admin',
+    isLoggedIn: (state) => !!state.token && !!state.user,
+    isAdmin: (state) => state.user?.role === 'admin' || state.user?.role === 'super_admin',
+    userInitials: (state) => {
+      if (!state.user?.name) return 'U'
+      return state.user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+    },
   },
 
   actions: {
@@ -56,11 +61,18 @@ export const useAuthStore = defineStore('auth', {
       this.user = response.data
     },
 
-    init() {
+    async init() {
       const token = localStorage.getItem('token')
       if (token) {
         this.token = token
-        this.fetchUser()
+        try {
+          await this.fetchUser()
+        } catch (e) {
+          // Token geçersizse, temizle
+          this.token = null
+          this.user = null
+          localStorage.removeItem('token')
+        }
       }
     },
   },

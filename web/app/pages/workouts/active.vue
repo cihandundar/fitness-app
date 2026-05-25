@@ -90,7 +90,7 @@
 import { ref } from 'vue'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: ['auth', 'active-member'],
   layout: false
 })
 

@@ -14,6 +14,7 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
+            'is_active' => $this->is_active,
             'phone' => $this->phone,
             'date_of_birth' => $this->date_of_birth?->toISOString(),
             'gender' => $this->gender,
@@ -22,6 +23,7 @@ class UserResource extends JsonResource
             'fitness_goal' => $this->fitness_goal,
             'activity_level' => $this->activity_level,
             'avatar' => $this->avatar,
+            'preferred_branches' => $this->preferred_branches,
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

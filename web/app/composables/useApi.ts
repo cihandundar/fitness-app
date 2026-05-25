@@ -3,7 +3,6 @@ import axios from 'axios'
 const api = axios.create({
   baseURL: 'http://127.0.0.1:8000/api',
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 })
@@ -18,5 +17,24 @@ api.interceptors.request.use((config) => {
 })
 
 export const useApi = () => {
-  return api
+  return {
+    get: (url: string) => api.get(url),
+    post: (url: string, data?: any, config?: any) => {
+      // FormData ise Content-Type header'ını gönderme (axios otomatik ayarlar)
+      if (data instanceof FormData) {
+        return api.post(url, data, {
+          ...config,
+          headers: {
+            ...(config?.headers || {}),
+            'Content-Type': undefined // FormData için undefined bırak
+          }
+        })
+      }
+      return api.post(url, data, config)
+    },
+    put: (url: string, data?: any) => api.put(url, data),
+    delete: (url: string) => api.delete(url),
+  }
 }
+
+export default api

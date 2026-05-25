@@ -3,13 +3,13 @@
     <TransitionGroup
       tag="div"
       name="toast"
-      class="fixed top-4 right-4 z-50 flex flex-col gap-3 pointer-events-none"
+      class="fixed top-24 right-4 left-4 sm:left-auto z-[100] flex flex-col gap-3 pointer-events-none"
     >
       <div
         v-for="toast in toasts"
         :key="toast.id"
         :class="[
-          'pointer-events-auto min-w-[300px] max-w-md p-4 rounded-xl border shadow-xl backdrop-blur-xl flex items-start gap-3 relative',
+          'pointer-events-auto w-full sm:min-w-[300px] sm:max-w-md p-4 rounded-xl border shadow-xl backdrop-blur-xl flex items-start gap-3 relative',
           toastClasses[toast.type]
         ]"
       >

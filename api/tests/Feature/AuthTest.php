@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\MembershipPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -32,6 +33,66 @@ class AuthTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'test@example.com',
         ]);
+    }
+
+    public function test_user_can_register_complete_in_one_request(): void
+    {
+        $plan = MembershipPlan::factory()->create(['is_active' => true]);
+
+        $response = $this->postJson('/api/auth/register-complete', [
+            'name' => 'Test User',
+            'email' => 'newuser@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'phone' => '5551234567',
+            'gender' => 'male',
+            'birth_date' => '2000-01-01',
+            'height' => 175,
+            'weight' => 70,
+            'membership_plan_id' => $plan->id,
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonStructure(['user', 'token', 'message']);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'newuser@example.com',
+            'phone' => '5551234567',
+        ]);
+    }
+
+    public function test_register_complete_is_idempotent_for_same_email(): void
+    {
+        $plan = MembershipPlan::factory()->create(['is_active' => true]);
+
+        $payload = [
+            'name' => 'Test User',
+            'email' => 'retry@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+            'phone' => '5551234567',
+            'gender' => 'male',
+            'birth_date' => '2000-01-01',
+            'height' => 175,
+            'weight' => 70,
+            'membership_plan_id' => $plan->id,
+        ];
+
+        $this->postJson('/api/auth/register-complete', $payload)->assertStatus(201);
+        $this->postJson('/api/auth/register-complete', $payload)->assertStatus(201);
+    }
+
+    public function test_check_email_returns_availability(): void
+    {
+        User::factory()->create(['email' => 'taken@example.com']);
+
+        $this->getJson('/api/auth/check-email?email=new@example.com')
+            ->assertStatus(200)
+            ->assertJson(['available' => true]);
+
+        $this->getJson('/api/auth/check-email?email=taken@example.com')
+            ->assertStatus(200)
+            ->assertJson(['available' => false]);
     }
 
     public function test_user_cannot_register_with_existing_email(): void

@@ -45,7 +45,8 @@ class ProgramController extends Controller
         if ($user && $user->role === 'user') {
             // Sadece kullanıcıya atanmış programları getir
             $query->whereHas('users', function($q) use ($user) {
-                $q->where('user_id', $user->id);
+                $q->where('user_id', $user->id)
+                  ->where('is_active', true);
             });
         }
 
@@ -53,16 +54,11 @@ class ProgramController extends Controller
         $query->orderBy('is_featured', 'desc')
               ->orderBy('created_at', 'desc');
 
-        $programs = $query->paginate($request->input('per_page', 15));
+        $programs = $query->get();
 
         return response()->json([
-            'data' => ProgramResource::collection($programs),
-            'meta' => [
-                'total' => $programs->total(),
-                'per_page' => $programs->perPage(),
-                'current_page' => $programs->currentPage(),
-                'last_page' => $programs->lastPage(),
-            ],
+            'success' => true,
+            'data' => ProgramResource::collection($programs)
         ]);
     }
 
